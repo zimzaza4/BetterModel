@@ -12,6 +12,7 @@ import kr.toxicity.model.api.BetterModel
 import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.BonePosition
 import kr.toxicity.model.api.bone.RenderedBone
+import kr.toxicity.model.api.bone.BoneTags
 import kr.toxicity.model.api.nms.ModelNametag
 import kr.toxicity.model.api.nms.ModelTextAlignment
 import kr.toxicity.model.api.nms.PacketBundler
@@ -31,6 +32,7 @@ import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.entity.PositionMoveRotation
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3f
+import org.joml.Quaternionf
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
@@ -63,6 +65,7 @@ internal class ModelNametagImpl(
         )
     }
 
+    private val textDisplay = bone.name().tagged(BoneTags.TEXT_DISPLAY)
     private val viewedPlayer = ConcurrentHashMap.newKeySet<UUID>()
     private val display = Display.TextDisplay(
         EntityTypes.TEXT_DISPLAY,
@@ -70,9 +73,10 @@ internal class ModelNametagImpl(
     ).apply {
         entityData[Display.DATA_POS_ROT_INTERPOLATION_DURATION_ID] = 3
         setTransformation(emptyTransformation)
-        billboardConstraints = Display.BillboardConstraints.CENTER
+        billboardConstraints = if (textDisplay) Display.BillboardConstraints.FIXED else Display.BillboardConstraints.CENTER
     }
     private val posCache = BoneMovement()
+    private val transformCache = BoneMovement()
     private var styleFlags = 0
     private var alwaysVisible = false
     private var location = BetterModel.platform().adapter().zero()
@@ -133,8 +137,24 @@ internal class ModelNametagImpl(
         this.alwaysVisible = alwaysVisible
     }
 
+    private fun updateTextDisplayTransformation(uuid: UUID) {
+        if (!textDisplay) return
+        val movement = bone.worldMovement(uuid, transformCache)
+        val rotation = Quaternionf()
+            .rotateX(-bone.rotation().radianX())
+            .rotateY(-bone.rotation().radianY())
+            .mul(movement.rotation())
+        display.setTransformation(Transformation(
+            Vector3f(-1F / 40F, -0.02F - 1F / 40F, if (textDisplay) -0.02F else 0F),
+            rotation,
+            Vector3f(movement.scale()).mul(bone.hitBoxScale() * bone.textDisplayScale()),
+            null
+        ))
+    }
+
     override fun send(player: PlatformPlayer) {
         if (display.text == VanillaComponent.empty()) return
+        updateTextDisplayTransformation(player.uuid())
         val hb = bone.group.hitBoxPoint
         val pos = bone.worldPosition(BonePosition(emptyVector, hb, player.uuid()), posCache)
         display.moveTo(Vec3(

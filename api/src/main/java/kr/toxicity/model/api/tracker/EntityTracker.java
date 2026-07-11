@@ -124,7 +124,11 @@ public class EntityTracker extends Tracker {
         pipeline.addGlobalRotModifier(HEAD_WITH_CHILDREN_PREDICATE, headRotator);
 
         createNametag(CREATE_NAMETAG_PREDICATE, (bone, tag) -> {
-            if (bone.name().tagged(BoneTags.PLAYER_TAG)) {
+            if (bone.name().tagged(BoneTags.TEXT_DISPLAY)) {
+                // Text panels are independent displays and should not inherit
+                // the entity nametag distance/name-visibility rule.
+                tag.alwaysVisible(true);
+            } else if (bone.name().tagged(BoneTags.PLAYER_TAG)) {
                 tag.alwaysVisible(true);
             } else if (bone.name().tagged(BoneTags.MOB_TAG)) {
                 tag.alwaysVisible(false);

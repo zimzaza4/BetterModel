@@ -12,11 +12,14 @@ import kr.toxicity.model.api.manager.ScriptManager
 import kr.toxicity.model.api.pack.PackZipper
 import kr.toxicity.model.api.script.AnimationScript
 import kr.toxicity.model.api.script.ScriptBuilder
+import kr.toxicity.model.api.nms.ModelTextAlignment
+import kr.toxicity.model.api.platform.PlatformBillboard
 import kr.toxicity.model.script.*
 import kr.toxicity.model.util.boneName
 import kr.toxicity.model.util.bonePredicate
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import net.kyori.adventure.text.format.TextColor
 
 object ScriptManagerImpl : ScriptManager, GlobalManager {
 
@@ -73,6 +76,26 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
                 it.metadata.asString("map")
             )
         }
+        addBuilder("text") {
+            TextDisplayScript(
+                it.metadata.bonePredicate,
+                it.metadata.asString("value") ?: it.metadata.asString("text") ?: it.args(),
+                it.metadata.asString("color")?.let(::parseTextColor),
+                it.metadata.asNumber("line_width")?.toInt(),
+                it.metadata.asString("background")?.let(::parseColor),
+                it.metadata.asNumber("opacity")?.toInt(),
+                it.metadata.asBoolean("shadow"),
+                it.metadata.asBoolean("see_through"),
+                it.metadata.asBoolean("default_background"),
+                it.metadata.asString("alignment")?.let { value ->
+                    runCatching { ModelTextAlignment.valueOf(value.uppercase()) }.getOrNull()
+                },
+                it.metadata.asString("billboard")?.let { value ->
+                    runCatching { PlatformBillboard.valueOf(value.uppercase()) }.getOrNull()
+                },
+                it.metadata.asBoolean("always_visible")
+            )
+        }
     }
 
     override fun build(script: String): AnimationScript? = script.toScript()
@@ -83,6 +106,16 @@ object ScriptManagerImpl : ScriptManager, GlobalManager {
     }
 
     override fun reload(pipeline: ReloadPipeline, zipper: PackZipper) {
+    }
+
+    private fun parseColor(value: String): Int? {
+        val normalized = value.removePrefix("#")
+        return normalized.toLongOrNull(16)?.takeIf { it <= 0xFFFFFFFFL }?.toInt()
+    }
+
+    private fun parseTextColor(value: String): TextColor? {
+        val normalized = value.removePrefix("#")
+        return normalized.toIntOrNull(16)?.let(TextColor::color)
     }
 
     private fun String.toScript(): AnimationScript? = scriptPattern.matcher(this)

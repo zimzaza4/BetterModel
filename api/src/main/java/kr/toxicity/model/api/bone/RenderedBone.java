@@ -403,6 +403,18 @@ public final class RenderedBone implements BoneEventHandler {
         return state(position.state()).worldPosition(position, cache);
     }
 
+    /**
+     * Gets the interpolated transformation of this bone for a viewer.
+     *
+     * @param uuid the viewer-specific animation state, or null for the global state
+     * @param cache the destination movement object
+     * @return the interpolated bone movement
+     * @since 3.3.0
+     */
+    public @NotNull BoneMovement worldMovement(@Nullable UUID uuid, @NotNull BoneMovement cache) {
+        return state(uuid).worldMovement(cache);
+    }
+
     public @NotNull Vector3f worldRotation() {
         return worldRotation(null);
     }
@@ -557,6 +569,31 @@ public final class RenderedBone implements BoneEventHandler {
         return scale.getAsFloat();
     }
 
+    /**
+     * Returns the static scale encoded by the cubes in a text-display group.
+     * A 1.0 model-unit cube is the 1x reference size.
+     *
+     * @return static text scale
+     * @since 3.3.0
+     */
+    public float textDisplayScale() {
+        if (!name().tagged(BoneTags.TEXT_DISPLAY)) return 1F;
+        if (!(group.getParent() instanceof BlueprintElement.Group parent)) return 1F;
+        var size = parent.children().stream()
+            .filter(BlueprintElement.Cube.class::isInstance)
+            .map(BlueprintElement.Cube.class::cast)
+            .mapToDouble(c -> Math.max(
+                Math.abs(c.to().x() - c.from().x()),
+                Math.max(
+                    Math.abs(c.to().y() - c.from().y()),
+                    Math.abs(c.to().z() - c.from().z())
+                )
+            ))
+            .max()
+            .orElse(1D);
+        return (float) Math.max(size, 0.01D);
+    }
+
     @NotNull
     public ModelRotation rotation() {
         return rotation;
@@ -686,6 +723,11 @@ public final class RenderedBone implements BoneEventHandler {
                 .mul(scale.getAsFloat())
                 .rotateX(-rotation.radianX())
                 .rotateY(-rotation.radianY());
+        }
+
+        private @NotNull BoneMovement worldMovement(@NotNull BoneMovement cache) {
+            var progress = progress();
+            return lock.accessToReadLock(() -> before.lerp(current, progress, cache));
         }
 
         private @NotNull Vector3f worldRotation() {
