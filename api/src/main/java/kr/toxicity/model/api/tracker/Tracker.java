@@ -708,6 +708,26 @@ public abstract class Tracker implements AutoCloseable {
         }), predicate);
     }
 
+    /**
+     * Applies a change to text displays created by a {@code td_} or {@code text_}
+     * bone tag.
+     *
+     * <p>Example:</p>
+     * <pre>{@code
+     * tracker.applyAtTextDisplay(BonePredicate.name("notice"), display ->
+     *     display.component(Component.text("Welcome"))
+     * );
+     * }</pre>
+     *
+     * @param predicate the bone predicate
+     * @param consumer text display consumer
+     * @return true if at least one display was updated
+     * @since 3.3.0
+     */
+    public boolean applyAtTextDisplay(@NotNull BonePredicate predicate, @NotNull Consumer<ModelNametag> consumer) {
+        return tryUpdate((bone, selected) -> bone.applyAtTextDisplay(selected, consumer), predicate);
+    }
+
     //--- Update action ---
 
     /**

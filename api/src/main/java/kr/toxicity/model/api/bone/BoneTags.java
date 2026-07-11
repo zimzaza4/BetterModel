@@ -54,6 +54,44 @@ public enum BoneTags implements BoneTag {
      * Player's nametag
      */
     PLAYER_TAG("ptag"),
+    /** Creates an animated text display attached to this bone.
+     * <p>
+     * Unlike {@link #TAG}, this tag does not copy the tracked entity's custom
+     * name. Configure its text through {@code Tracker.applyAtTextDisplay}.
+     * </p>
+     * @since 3.3.0
+     */
+    TEXT_DISPLAY("td", "text"),
+    /**
+     * Merges a nested, cube-only group into its nearest rendered ancestor.
+     * <p>
+     * Static groups do not create their own item display. They must not be
+     * addressed directly by animations or plugin APIs.
+     * </p>
+     * @since 3.3.0
+     */
+    STATIC("static", "merge"),
+    /**
+     * Recursively merges this cube-only group and its cube-only descendants
+     * into the nearest rendered ancestor.
+     * <p>
+     * Name a group {@code statici_body} or {@code mergei_body} to apply the
+     * static behavior to its subtree without tagging every child.
+     * </p>
+     * @since 3.3.0
+     */
+    STATIC_WITH_CHILDREN("statici", "mergei"),
+    /**
+     * Keeps this group rendered while recursively merging its cube-only
+     * descendants into it.
+     * <p>
+     * Name a group {@code staticc_body} or {@code mergec_body} when the group
+     * must remain addressable by animations or plugin APIs but its child groups
+     * do not need separate item displays.
+     * </p>
+     * @since 3.3.0
+     */
+    STATIC_CHILDREN("staticc", "mergec"),
     /**
      * Glow
      */

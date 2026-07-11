@@ -146,7 +146,7 @@ public sealed interface BlueprintElement {
             @NotNull PackObfuscator.Pair obfuscator,
             @NotNull BlueprintLoadContext context
         ) {
-            return buildJson(-2, 1, scale(), obfuscator, context, Float3.ZERO, filterIsInstance(children, Cube.class).filter(element -> MathUtil.checkValidDegree(element.identifierDegree())));
+            return buildJson(-2, 1, scale(), obfuscator, context, Float3.ZERO, filterIsInstance(children, Cube.class).filter(element -> MathUtil.checkValidDegree(element.identifierDegree())), null);
         }
 
         /**
@@ -163,16 +163,74 @@ public sealed interface BlueprintElement {
             @NotNull PackObfuscator.Pair obfuscator,
             @NotNull BlueprintLoadContext context
         ) {
-            var scale = scale();
+            return buildModernJson(obfuscator, context, null);
+        }
+
+        /**
+         * Builds modern models with an optional fixed transform used when a
+         * static group is merged into another rendered group.
+         *
+         * @param obfuscator the obfuscator for model and texture names
+         * @param context the load context
+         * @param transform the transform relative to the rendered group, or null
+         * @return generated model JSONs, or null when no cubes are renderable
+         * @since 3.3.0
+         */
+        @Nullable
+        @Unmodifiable
+        public List<BlueprintJson> buildModernJson(
+            @NotNull PackObfuscator.Pair obfuscator,
+            @NotNull BlueprintLoadContext context,
+            @Nullable FixedTransform transform
+        ) {
+            return buildModernJson(obfuscator, context, transform, scale());
+        }
+
+        /**
+         * Builds modern models using a caller-provided normalization scale.
+         * The normalization scale is used when several static groups share a
+         * single item display and their fixed transforms must stay within the
+         * vanilla item-transform limits.
+         * <pre>{@code
+         * group.buildModernJson(obfuscator, context, transform, 2F);
+         * }</pre>
+         *
+         * @param obfuscator the obfuscator for model and texture names
+         * @param context the load context
+         * @param transform the transform relative to the rendered group, or null
+         * @param scale the positive scale used to normalize model elements
+         * @return generated model JSONs, or null when no cubes are renderable
+         * @throws IllegalArgumentException if {@code scale} is not positive
+         * @since 3.3.0
+         */
+        @Nullable
+        @Unmodifiable
+        public List<BlueprintJson> buildModernJson(
+            @NotNull PackObfuscator.Pair obfuscator,
+            @NotNull BlueprintLoadContext context,
+            @Nullable FixedTransform transform,
+            float scale
+        ) {
+            if (scale <= 0F) throw new IllegalArgumentException("scale must be positive");
             var list = mapIndexed(
                 group(
                     filterIsInstance(children, Cube.class),
                     Cube::identifierDegree
                 ),
-                (i, entry) -> buildJson(0, i + 1, scale, obfuscator, context, entry.getKey(), entry.getValue().stream())
+                (i, entry) -> buildJson(0, i + 1, scale, obfuscator, context, entry.getKey(), entry.getValue().stream(), transform)
             ).filter(Objects::nonNull)
                 .toList();
             return list.isEmpty() ? null : list;
+        }
+
+        /**
+         * Checks whether this group can be merged without dropping mesh data.
+         *
+         * @return true when the group contains no mesh elements
+         * @since 3.3.0
+         */
+        public boolean isCubeOnly() {
+            return filterIsInstance(children, Mesh.class).findAny().isEmpty();
         }
 
         /**
@@ -185,11 +243,32 @@ public sealed interface BlueprintElement {
         public @Nullable JsonObject buildMeshItemModel(
             @NotNull BlueprintLoadContext context
         ) {
-            var scale = 1F / scale();
+            return buildMeshItemModel(context, scale());
+        }
+
+        /**
+         * Builds a mesh item model using a caller-provided normalization
+         * scale.
+         * <pre>{@code
+         * group.buildMeshItemModel(context, 2F);
+         * }</pre>
+         *
+         * @param context the load context
+         * @param scale the positive scale used to normalize mesh vertices
+         * @return the generated mesh JSON, or null if no meshes are present
+         * @throws IllegalArgumentException if {@code scale} is not positive
+         * @since 3.3.0
+         */
+        public @Nullable JsonObject buildMeshItemModel(
+            @NotNull BlueprintLoadContext context,
+            float scale
+        ) {
+            if (scale <= 0F) throw new IllegalArgumentException("scale must be positive");
+            var inverseScale = 1F / scale;
             var meshes = filterIsInstance(children, Mesh.class).toList();
             if (meshes.isEmpty()) return null;
             var builder = MeshBuilder.of(context.triangleName())
-                .matrixModifier(mat -> mat.scale(scale))
+                .matrixModifier(mat -> mat.scale(inverseScale))
                 .image(context.imageByIndex());
             meshes.forEach(mesh -> builder.load(mesh.toShape(origin)));
             return builder.toJson();
@@ -202,7 +281,8 @@ public sealed interface BlueprintElement {
             @NotNull PackObfuscator.Pair obfuscator,
             @NotNull BlueprintLoadContext context,
             @NotNull Float3 identifier,
-            @NotNull Stream<Cube> cubes
+            @NotNull Stream<Cube> cubes,
+            @Nullable FixedTransform transform
         ) {
             var cubeElement = cubes
                 .filter(Cube::hasTexture)
@@ -220,12 +300,43 @@ public sealed interface BlueprintElement {
                     .property("particle", selectedTextures.getFirst().getValue()))
                 .jsonArray("elements", mapToJson(cubeElement, cube -> cube.buildJson(tint, scale, context, this, identifier)))
                 .jsonObject("display", display -> display.jsonObject("fixed", fixed -> {
-                    if (!identifier.equals(Float3.ZERO)) {
-                        fixed.jsonArray("rotation", identifier.convertToMinecraftDegree().toJson());
+                    var rotation = compositeRotation(identifier, transform);
+                    if (!rotation.equals(Float3.ZERO)) {
+                        fixed.jsonArray("rotation", rotation.toJson());
+                    }
+                    if (transform != null) {
+                        fixed.jsonArray("translation", transform.translation().toJson());
+                        if (transform.scale() != 1F) fixed.jsonArray("scale", new Float3(transform.scale()).toJson());
                     }
                 }))
                 .build());
         }
+
+        private static @NotNull Float3 compositeRotation(@NotNull Float3 identifier, @Nullable FixedTransform transform) {
+            return transform != null
+                ? toMinecraftRotation(new Quaternionf(transform.rotation()).mul(identifier.toQuaternionZYX()))
+                : identifier.convertToMinecraftDegree();
+        }
+
+        private static @NotNull Float3 toMinecraftRotation(@NotNull Quaternionf rotation) {
+            var euler = MathUtil.toXYZEuler(rotation);
+            return new Float3(euler.x, euler.y, euler.z);
+        }
+
+        /**
+         * A fixed model transform used when resource-pack generation merges a
+         * static group into a rendered group.
+         *
+         * @param translation translation in item-model units
+         * @param rotation rotation relative to the rendered group
+         * @param scale scale relative to the rendered group
+         * @since 3.3.0
+         */
+        public record FixedTransform(
+            @NotNull Float3 translation,
+            @NotNull Quaternionf rotation,
+            float scale
+        ) {}
 
         /**
          * Calculates the required scale for the cubes in this group.

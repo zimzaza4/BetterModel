@@ -233,6 +233,22 @@ public final class RenderedBone implements BoneEventHandler {
     }
 
     /**
+     * Applies a change to the text display already attached to this bone.
+     *
+     * @param predicate predicate used to select this bone
+     * @param consumer text display consumer
+     * @return true when a matching text display was updated
+     * @since 3.3.0
+     */
+    public boolean applyAtTextDisplay(@NotNull Predicate<RenderedBone> predicate, @NotNull Consumer<ModelNametag> consumer) {
+        if (nametag != null && predicate.test(this)) {
+            consumer.accept(nametag);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Make item has enchantment or not
      * @param predicate predicate
      * @param enchant should enchant

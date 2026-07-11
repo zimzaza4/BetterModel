@@ -92,6 +92,8 @@ public final class MathUtil {
      */
     public static final float QUATERNION_COMPARISON_EPSILON = 1E-5F;
 
+    private static final float EULER_SINGULARITY_EPSILON_SQ = 1E-12F;
+
     private static final Vector3f ZERO_VECTOR = new Vector3f();
 
     /**
@@ -242,8 +244,38 @@ public final class MathUtil {
      * @return xyz euler
      */
     public static @NotNull Vector3f toXYZEuler(@NotNull Vector3f vec) {
-        return toQuaternion(vec)
-            .getEulerAnglesXYZ(vec)
+        return toXYZEuler(toQuaternion(vec), vec);
+    }
+
+    /**
+     * Converts a quaternion to xyz euler angles in degrees.
+     * <pre>{@code
+     * var euler = MathUtil.toXYZEuler(new Quaternionf().rotateX((float) Math.PI / 2));
+     * }</pre>
+     * @param rotation quaternion rotation
+     * @return xyz euler angles in degrees
+     * @since 3.3.0
+     */
+    public static @NotNull Vector3f toXYZEuler(@NotNull Quaternionf rotation) {
+        return toXYZEuler(rotation, new Vector3f());
+    }
+
+    private static @NotNull Vector3f toXYZEuler(@NotNull Quaternionf rotation, @NotNull Vector3f dest) {
+        var xNumerator = rotation.x * rotation.w - rotation.y * rotation.z;
+        var xDenominator = 0.5F - rotation.x * rotation.x - rotation.y * rotation.y;
+        var zNumerator = rotation.z * rotation.w - rotation.x * rotation.y;
+        var zDenominator = 0.5F - rotation.y * rotation.y - rotation.z * rotation.z;
+        var xMagnitudeSquared = fma(xNumerator, xNumerator, xDenominator * xDenominator);
+        var zMagnitudeSquared = fma(zNumerator, zNumerator, zDenominator * zDenominator);
+        if (xMagnitudeSquared < EULER_SINGULARITY_EPSILON_SQ && zMagnitudeSquared < EULER_SINGULARITY_EPSILON_SQ) {
+            var sinY = 2F * fma(rotation.x, rotation.z, rotation.y * rotation.w);
+            var z = (sinY > 0F ? 2F : -2F) * org.joml.Math.atan2(rotation.x, rotation.w);
+            return dest
+                .set(0F, Math.copySign((float) PI / 2F, sinY), z)
+                .mul(RADIANS_TO_DEGREES);
+        }
+        return rotation
+            .getEulerAnglesXYZ(dest)
             .mul(RADIANS_TO_DEGREES);
     }
 

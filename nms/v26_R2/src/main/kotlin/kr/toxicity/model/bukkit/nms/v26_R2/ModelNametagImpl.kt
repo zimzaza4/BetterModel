@@ -13,7 +13,9 @@ import kr.toxicity.model.api.bone.BoneMovement
 import kr.toxicity.model.api.bone.BonePosition
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.nms.ModelNametag
+import kr.toxicity.model.api.nms.ModelTextAlignment
 import kr.toxicity.model.api.nms.PacketBundler
+import kr.toxicity.model.api.platform.PlatformBillboard
 import kr.toxicity.model.api.platform.PlatformLocation
 import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.EntityUtil
@@ -22,6 +24,7 @@ import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
+import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.EntityTypes
@@ -35,6 +38,22 @@ internal class ModelNametagImpl(
     private val bone: RenderedBone
 ) : ModelNametag {
     private companion object {
+        private const val FLAG_SHADOW = 1
+        private const val FLAG_SEE_THROUGH = 2
+        private const val FLAG_DEFAULT_BACKGROUND = 4
+        private const val FLAG_ALIGN_LEFT = 8
+        private const val FLAG_ALIGN_RIGHT = 16
+
+        private val textDisplayData = Display.TextDisplay::class.java.accessors()
+        @Suppress("UNCHECKED_CAST")
+        private val lineWidthData = textDisplayData[1] as EntityDataAccessor<Int>
+        @Suppress("UNCHECKED_CAST")
+        private val backgroundColorData = textDisplayData[2] as EntityDataAccessor<Int>
+        @Suppress("UNCHECKED_CAST")
+        private val textOpacityData = textDisplayData[3] as EntityDataAccessor<Byte>
+        @Suppress("UNCHECKED_CAST")
+        private val styleFlagsData = textDisplayData[4] as EntityDataAccessor<Byte>
+
         private val emptyVector = Vector3f()
         private val emptyTransformation = Transformation(
             Vector3f(-1F / 40F, -0.2F - 1F / 40F, 0F),
@@ -54,11 +73,56 @@ internal class ModelNametagImpl(
         billboardConstraints = Display.BillboardConstraints.CENTER
     }
     private val posCache = BoneMovement()
+    private var styleFlags = 0
     private var alwaysVisible = false
     private var location = BetterModel.platform().adapter().zero()
 
     override fun component(component: Component?) {
         display.text = component?.asVanilla() ?: VanillaComponent.empty()
+    }
+
+    override fun lineWidth(width: Int) {
+        display.entityData[lineWidthData] = width
+    }
+
+    override fun backgroundColor(color: Int) {
+        display.entityData[backgroundColorData] = color
+    }
+
+    override fun textOpacity(opacity: Int) {
+        require(opacity in 0..255) { "opacity must be between 0 and 255" }
+        display.entityData[textOpacityData] = opacity.toByte()
+    }
+
+    override fun shadowed(shadowed: Boolean) {
+        setFlag(FLAG_SHADOW, shadowed)
+    }
+
+    override fun seeThrough(seeThrough: Boolean) {
+        setFlag(FLAG_SEE_THROUGH, seeThrough)
+    }
+
+    override fun defaultBackground(defaultBackground: Boolean) {
+        setFlag(FLAG_DEFAULT_BACKGROUND, defaultBackground)
+    }
+
+    override fun alignment(alignment: ModelTextAlignment) {
+        styleFlags = styleFlags and (FLAG_ALIGN_LEFT or FLAG_ALIGN_RIGHT).inv()
+        styleFlags = styleFlags or when (alignment) {
+            ModelTextAlignment.LEFT -> FLAG_ALIGN_LEFT
+            ModelTextAlignment.CENTER -> 0
+            ModelTextAlignment.RIGHT -> FLAG_ALIGN_RIGHT
+        }
+        display.entityData[styleFlagsData] = styleFlags.toByte()
+    }
+
+    override fun billboard(billboard: PlatformBillboard) {
+        display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
+    }
+
+    private fun setFlag(flag: Int, enabled: Boolean) {
+        styleFlags = if (enabled) styleFlags or flag else styleFlags and flag.inv()
+        display.entityData[styleFlagsData] = styleFlags.toByte()
     }
 
     override fun teleport(location: PlatformLocation) {

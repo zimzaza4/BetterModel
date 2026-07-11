@@ -14,7 +14,9 @@ import kr.toxicity.model.api.bone.BonePosition
 import kr.toxicity.model.api.bone.RenderedBone
 import kr.toxicity.model.api.mod.BetterModelMod
 import kr.toxicity.model.api.nms.ModelNametag
+import kr.toxicity.model.api.nms.ModelTextAlignment
 import kr.toxicity.model.api.nms.PacketBundler
+import kr.toxicity.model.api.platform.PlatformBillboard
 import kr.toxicity.model.api.platform.PlatformLocation
 import kr.toxicity.model.api.platform.PlatformPlayer
 import kr.toxicity.model.api.util.EntityUtil
@@ -65,6 +67,40 @@ class ModelNametagImpl(
 
     override fun component(component: net.kyori.adventure.text.Component?) {
         display.text = component?.asVanilla() ?: Component.empty()
+    }
+
+    override fun lineWidth(width: Int) {
+        display.setLineWidth(width)
+    }
+
+    override fun backgroundColor(color: Int) {
+        display.setBackgroundColor(color)
+    }
+
+    override fun textOpacity(opacity: Int) {
+        require(opacity in 0..255) { "opacity must be between 0 and 255" }
+        display.setTextOpacity(opacity.toByte())
+    }
+
+    override fun shadowed(shadowed: Boolean) {
+        display.setShadowed(shadowed)
+    }
+
+    override fun seeThrough(seeThrough: Boolean) {
+        display.setSeeThrough(seeThrough)
+    }
+
+    override fun defaultBackground(defaultBackground: Boolean) {
+        display.setUseDefaultBackground(defaultBackground)
+    }
+
+    override fun alignment(alignment: ModelTextAlignment) {
+        display.setAlignLeft(alignment == ModelTextAlignment.LEFT)
+        display.setAlignRight(alignment == ModelTextAlignment.RIGHT)
+    }
+
+    override fun billboard(billboard: PlatformBillboard) {
+        display.billboardConstraints = Display.BillboardConstraints.BY_ID.apply(billboard.ordinal)
     }
 
     override fun teleport(location: PlatformLocation) {

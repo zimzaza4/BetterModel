@@ -57,7 +57,7 @@ public class EntityTracker extends Tracker {
         .or(b -> b.getGroup().getMountController().canMount())
         .notSet();
 
-    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.tag(BoneTags.TAG, BoneTags.MOB_TAG, BoneTags.PLAYER_TAG).notSet();
+    private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.tag(BoneTags.TAG, BoneTags.MOB_TAG, BoneTags.PLAYER_TAG, BoneTags.TEXT_DISPLAY).notSet();
     private static final BonePredicate HITBOX_REFRESH_PREDICATE = BonePredicate.from(r -> r.getHitBox() != null);
     private static final BonePredicate HEAD_PREDICATE = BonePredicate.tag(BoneTags.HEAD).notSet();
     private static final BonePredicate HEAD_WITH_CHILDREN_PREDICATE = BonePredicate.tag(BoneTags.HEAD_WITH_CHILDREN).withChildren();
@@ -129,7 +129,7 @@ public class EntityTracker extends Tracker {
             } else if (bone.name().tagged(BoneTags.MOB_TAG)) {
                 tag.alwaysVisible(false);
             } else tag.alwaysVisible(entity instanceof BasePlayer);
-            tag.component(entity.customName());
+            if (!bone.name().tagged(BoneTags.TEXT_DISPLAY)) tag.component(entity.customName());
         });
         listenHitBox((b, l) -> l
             .create(h -> registry.hitBoxCache.put(h.uuid(), h))
