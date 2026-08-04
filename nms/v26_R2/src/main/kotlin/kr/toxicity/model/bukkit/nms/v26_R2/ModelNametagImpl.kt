@@ -23,6 +23,7 @@ import kr.toxicity.model.api.util.EntityUtil
 import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.syncher.EntityDataAccessor
@@ -140,13 +141,11 @@ internal class ModelNametagImpl(
     private fun updateTextDisplayTransformation(uuid: UUID) {
         if (!textDisplay) return
         val movement = bone.worldMovement(uuid, transformCache)
-        val rotation = Quaternionf()
-            .rotateX(-bone.rotation().radianX())
-            .rotateY(-bone.rotation().radianY())
-            .mul(movement.rotation())
+        display.xRot = bone.rotation().x
+        display.yRot = bone.rotation().y
         display.setTransformation(Transformation(
             Vector3f(-1F / 40F, -0.02F - 1F / 40F, if (textDisplay) -0.02F else 0F),
-            rotation,
+            Quaternionf(movement.rotation()),
             Vector3f(movement.scale()).mul(bone.hitBoxScale() * bone.textDisplayScale()),
             null
         ))
@@ -172,6 +171,7 @@ internal class ModelNametagImpl(
             )
             inPoint -> bundlerOfNotNull(
                 ClientboundEntityPositionSyncPacket(display.id, PositionMoveRotation.of(display), false),
+                ClientboundMoveEntityPacket.Rot(display.id, bone.rotation().packedY(), bone.rotation().packedX(), false),
                 display.entityData.packDirty()?.let {
                     ClientboundSetEntityDataPacket(display.id, it)
                 }
