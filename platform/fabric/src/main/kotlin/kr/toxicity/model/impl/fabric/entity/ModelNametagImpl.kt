@@ -26,6 +26,7 @@ import kr.toxicity.model.impl.fabric.network.bundlerOfNotNull
 import kr.toxicity.model.impl.fabric.network.pack
 import kr.toxicity.model.impl.fabric.network.plusAssign
 import kr.toxicity.model.mixin.DisplayAccessor
+import kr.toxicity.model.mixin.TextDisplayAccessor
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
@@ -43,6 +44,12 @@ class ModelNametagImpl(
     private val bone: RenderedBone
 ) : ModelNametag {
     private companion object {
+        private const val FLAG_SHADOW = 1
+        private const val FLAG_SEE_THROUGH = 2
+        private const val FLAG_DEFAULT_BACKGROUND = 4
+        private const val FLAG_ALIGN_LEFT = 8
+        private const val FLAG_ALIGN_RIGHT = 16
+
         private val emptyVector = Vector3f()
         private val emptyTransformation = Transformation(
             Vector3f(-1F / 40F, -0.2F - 1F / 40F, 0F),
@@ -62,6 +69,7 @@ class ModelNametagImpl(
         billboardConstraints = Display.BillboardConstraints.CENTER
     }
     private val posCache = BoneMovement()
+    private var styleFlags = 0
     private var alwaysVisible = false
     private var location = BetterModel.platform().adapter().zero()
 
@@ -83,20 +91,25 @@ class ModelNametagImpl(
     }
 
     override fun shadowed(shadowed: Boolean) {
-        display.setShadowed(shadowed)
+        setFlag(FLAG_SHADOW, shadowed)
     }
 
     override fun seeThrough(seeThrough: Boolean) {
-        display.setSeeThrough(seeThrough)
+        setFlag(FLAG_SEE_THROUGH, seeThrough)
     }
 
     override fun defaultBackground(defaultBackground: Boolean) {
-        display.setUseDefaultBackground(defaultBackground)
+        setFlag(FLAG_DEFAULT_BACKGROUND, defaultBackground)
     }
 
     override fun alignment(alignment: ModelTextAlignment) {
-        display.setAlignLeft(alignment == ModelTextAlignment.LEFT)
-        display.setAlignRight(alignment == ModelTextAlignment.RIGHT)
+        styleFlags = styleFlags and (FLAG_ALIGN_LEFT or FLAG_ALIGN_RIGHT).inv()
+        styleFlags = styleFlags or when (alignment) {
+            ModelTextAlignment.LEFT -> FLAG_ALIGN_LEFT
+            ModelTextAlignment.CENTER -> 0
+            ModelTextAlignment.RIGHT -> FLAG_ALIGN_RIGHT
+        }
+        display.entityData[TextDisplayAccessor.`bettermodel$getDataStyleFlagsId`()] = styleFlags.toByte()
     }
 
     override fun billboard(billboard: PlatformBillboard) {
@@ -109,6 +122,11 @@ class ModelNametagImpl(
 
     override fun alwaysVisible(alwaysVisible: Boolean) {
         this.alwaysVisible = alwaysVisible
+    }
+
+    private fun setFlag(flag: Int, enabled: Boolean) {
+        styleFlags = if (enabled) styleFlags or flag else styleFlags and flag.inv()
+        display.entityData[TextDisplayAccessor.`bettermodel$getDataStyleFlagsId`()] = styleFlags.toByte()
     }
 
     override fun send(player: PlatformPlayer) {

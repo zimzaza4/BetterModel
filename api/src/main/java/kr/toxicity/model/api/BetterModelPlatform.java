@@ -27,6 +27,17 @@ import java.util.function.Consumer;
 
 /**
  * Represents the main platform interface for BetterModel.
+ * <p>
+ * This interface provides access to core engine managers, schedulers, adapters, configuration,
+ * NMS interfaces, and event bus systems across supported server platforms.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * BetterModelPlatform platform = BetterModel.platform();
+ * ModelScheduler scheduler = platform.scheduler();
+ * BetterModelConfig config = platform.config();
+ * }</pre>
  *
  * @see BetterModel
  * @since 1.15.2
@@ -122,43 +133,81 @@ public interface BetterModelPlatform extends ModelEventApplication {
     @NotNull NMS nms();
 
     /**
+     * Gets the specified manager instance.
+     * All separately existing manager getters have been refactored into this single method.
+     * Use this method to access any manager.
+     *
+     * <p>Example:
+     * <pre>{@code
+     * ModelManager modelManager = platform.manager(ModelManager.class);
+     * }</pre>
+     *
+     * @param managerClass the class of the manager to retrieve
+     * @param <T> the type of the manager
+     * @return the manager instance
+     * @since 3.3.0
+     */
+    @NotNull <T extends Manager> T manager(@NotNull Class<T> managerClass);
+
+    /**
      * Returns the model manager.
      *
+     * @deprecated use BetterModelPlatform#manager instead.
      * @return the model manager
      * @since 1.15.2
      */
-    @NotNull ModelManager modelManager();
+    @Deprecated
+    default @NotNull ModelManager modelManager() {
+        return manager(ModelManager.class);
+    }
 
     /**
      * Returns the player manager.
      *
+     * @deprecated use BetterModelPlatform#manager instead.
      * @return the player manager
      * @since 1.15.2
      */
-    @NotNull PlayerManager playerManager();
+    @Deprecated
+    default @NotNull PlayerManager playerManager() {
+        return manager(PlayerManager.class);
+    }
 
     /**
      * Returns the script manager.
      *
+     * @deprecated use BetterModelPlatform#manager instead.
      * @return the script manager
      * @since 1.15.2
      */
-    @NotNull ScriptManager scriptManager();
+    @Deprecated
+    default @NotNull ScriptManager scriptManager() {
+        return manager(ScriptManager.class);
+    }
 
     /**
      * Returns the skin manager.
      *
+     * @deprecated use BetterModelPlatform#manager instead.
      * @return the skin manager
      * @since 1.15.2
      */
-    @NotNull SkinManager skinManager();
+    @Deprecated
+    default @NotNull SkinManager skinManager() {
+        return manager(SkinManager.class);
+    }
+
     /**
      * Returns the profile manager.
      *
+     * @deprecated use BetterModelPlatform#manager instead.
      * @return the profile manager
      * @since 1.15.2
      */
-    @NotNull ProfileManager profileManager();
+    @Deprecated
+    default @NotNull ProfileManager profileManager() {
+        return manager(ProfileManager.class);
+    }
 
     /**
      * Returns the platform's scheduler.
@@ -169,8 +218,9 @@ public interface BetterModelPlatform extends ModelEventApplication {
     @NotNull ModelScheduler scheduler();
 
     /**
-     * Return the platform's adapter
-     * @return the adapter
+     * Returns the platform-specific entity and component adapter.
+     *
+     * @return the platform adapter
      */
     @NotNull PlatformAdapter adapter();
 

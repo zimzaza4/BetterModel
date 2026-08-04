@@ -14,7 +14,8 @@
         "MobAccessor",
         "ServerCommonPacketListenerImplAccessor",
         "ServerLevelEntityCallbacksMixin",
-        "SynchedEntityDataAccessor"
+        "SynchedEntityDataAccessor",
+        "TextDisplayAccessor"
     ],
     "injectors": {
         "defaultRequire": 1
