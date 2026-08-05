@@ -666,8 +666,10 @@ public final class RenderedBone implements BoneEventHandler {
                     consumer.accept(uuid);
                 }
             }) || firstTick;
-            if (result && updateAfter.compareAndSet(false, true)) {
-                lock.accessToWriteLock(() -> before.set(current));
+            if (result || state.isEmpty()) {
+                if (updateAfter.compareAndSet(false, true)) {
+                    lock.accessToWriteLock(() -> before.set(current));
+                }
                 updateCurrent.set(true);
             }
             firstTick = false;
@@ -680,14 +682,23 @@ public final class RenderedBone implements BoneEventHandler {
 
         private int interpolationDuration() {
             if (skipInterpolation) return 0;
-            var frame = state.frame() / (float) Tracker.MINECRAFT_TICK_MULTIPLIER;
-            return Math.round(frame + MathUtil.FLOAT_COMPARISON_EPSILON);
+            var frame = state.frame();
+            if (frame == 0 && parent != null) {
+                return parent.state(uuid).interpolationDuration();
+            }
+            return Math.round(frame / (float) Tracker.MINECRAFT_TICK_MULTIPLIER + MathUtil.FLOAT_COMPARISON_EPSILON);
         }
+
+        private final BoneMovement lastSent = new BoneMovement();
+        private boolean hasSent = false;
 
         private void sendTransformation(@NotNull AnimationBundler bundler) {
             if (!updateCurrent.compareAndSet(true, false)) return;
             var after = after();
             var movement = lock.accessToWriteLock(() -> current.set(after));
+            if (hasSent && movement.equals(lastSent)) return;
+            hasSent = true;
+            lastSent.set(movement);
             if (transformer == null) return;
             var mul = scale.getAsFloat();
             transformer.transform(

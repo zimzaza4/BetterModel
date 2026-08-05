@@ -180,6 +180,20 @@ public final class AnimationStateHandler<T extends Timed> {
     }
 
     /**
+     * Checks whether this handler currently has no animators registered.
+     * <p>
+     * Bones without any animation keyframes still need to re-evaluate their
+     * transformation every tick so they can follow their parent's movement.
+     * </p>
+     *
+     * @return true if no animators are registered, false otherwise
+     * @since 3.4.0
+     */
+    public boolean isEmpty() {
+        return animators.isEmpty();
+    }
+
+    /**
      * Adds animation
      * @param name name
      * @param iterator iterator
