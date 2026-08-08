@@ -28,12 +28,12 @@ new ModelFormat('bettermodel', {
 	java_cube_shading_properties: true,
 })
 
-new Property(Cube, 'boolean', 'shade', {
-	default: true,
-	condition: () => Format.id === 'bettermodel',
-	inputs: {
-		element_panel: {
-			input: { type: 'checkbox', label: 'Shaded' }
-		}
-	}
-})
+// Only save non-default values into the .bbmodel file.
+var shadeProperty = Cube.properties.shade
+if (shadeProperty) shadeProperty.copy = function(instance, target) {
+	if (instance.shade === false) target.shade = false
+}
+var emissionProperty = Cube.properties.light_emission
+if (emissionProperty) emissionProperty.copy = function(instance, target) {
+	if (instance.light_emission) target.light_emission = instance.light_emission
+}
