@@ -1,3 +1,10 @@
+Language.addTranslations('en', {
+	'format.bettermodel': 'BetterModel'
+})
+Language.addTranslations('zh', {
+	'format.bettermodel': 'BetterModel'
+})
+
 new ModelFormat('bettermodel', {
 	icon: 'icon-format_free',
 	category: 'other',
