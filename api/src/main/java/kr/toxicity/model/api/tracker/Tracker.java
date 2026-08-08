@@ -548,7 +548,6 @@ public abstract class Tracker implements AutoCloseable {
             match = true;
         }
         match |= pipeline.matchAnimation((b, a) -> b.addAnimation(a, animation, modifier, removeTask));
-        if (match && isScheduled()) animationTick();
         return match;
     }
 
@@ -588,7 +587,6 @@ public abstract class Tracker implements AutoCloseable {
         var match = false;
         match |= scriptProcessor.stopAnimation(animation);
         match |= pipeline.matchTree(b -> b.stopAnimation(filter, animation, player));
-        if (match && isScheduled()) animationTick();
         return match;
     }
 
@@ -624,7 +622,6 @@ public abstract class Tracker implements AutoCloseable {
             match = true;
         }
         match |= pipeline.matchAnimation((b, a) -> b.replaceAnimation(a, target, animation, modifier));
-        if (match && isScheduled()) animationTick();
         return match;
     }
 

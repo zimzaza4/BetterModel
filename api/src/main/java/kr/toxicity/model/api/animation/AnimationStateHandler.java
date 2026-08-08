@@ -36,7 +36,7 @@ public final class AnimationStateHandler<T extends Timed> {
     private volatile boolean forceUpdate;
 
     @Getter
-    private int delay;
+    private int delay = 1;
     private volatile TreeIterator currentIterator = null;
     private volatile T beforeKeyframe = null, afterKeyframe = null;
 
@@ -114,7 +114,9 @@ public final class AnimationStateHandler<T extends Timed> {
             ifEmpty.run();
             return false;
         }
-        return shouldUpdateAnimation() && updateAnimation();
+        var update = shouldUpdateAnimation();
+        forceUpdate = false;
+        return update && updateAnimation();
     }
 
     /**
