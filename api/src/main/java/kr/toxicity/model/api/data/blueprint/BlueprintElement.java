@@ -447,6 +447,7 @@ public sealed interface BlueprintElement {
      * @param origin the pivot point of the cube
      * @param faces the UV mapping for the faces
      * @param lightEmission the light emission level (1-15 or null if 0)
+     * @param shade whether the cube is shaded by ambient light
      * @param visibility whether the cube is visible
      * @since 1.15.2
      */
@@ -459,6 +460,7 @@ public sealed interface BlueprintElement {
         @NotNull Float3 origin,
         @Nullable ModelFace faces,
         @Nullable Integer lightEmission,
+        boolean shade,
         boolean visibility
     ) implements BlueprintElement {
 
@@ -484,8 +486,10 @@ public sealed interface BlueprintElement {
             var centerOrigin = centralize(origin(), group.origin, scale);
             var groupDelta = deltaPosition(centerOrigin, qua);
             var inflate = new Float3(inflate() / scale);
-            return JsonObjectBuilder.builder()
-                .property("light_emission", group.name.tagged(BoneTags.GLOW) ? Integer.valueOf(15) : lightEmission)
+            var builder = JsonObjectBuilder.builder()
+                .property("light_emission", group.name.tagged(BoneTags.GLOW) ? Integer.valueOf(15) : lightEmission);
+            if (!shade) builder.property("shade", false);
+            return builder
                 .jsonArray("from", centralize(from(), group.origin, scale)
                     .plus(groupDelta)
                     .plus(Float3.CENTER)

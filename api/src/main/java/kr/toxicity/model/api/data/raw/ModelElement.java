@@ -255,6 +255,7 @@ public sealed interface ModelElement {
      * @param origin the pivot point (origin) of the cube
      * @param faces the UV mapping for the faces
      * @param lightEmission the light emission level (0-15)
+     * @param _shade the shading state (null means shaded)
      * @param _visibility the visibility state (null means visible)
      * @since 1.15.2
      */
@@ -268,6 +269,7 @@ public sealed interface ModelElement {
         @NotNull Float3 origin,
         @Nullable ModelFace faces,
         @SerializedName("light_emission") int lightEmission,
+        @SerializedName("shade") @Nullable Boolean _shade,
         @SerializedName("visibility") @Nullable Boolean _visibility
     ) implements ModelElement {
 
@@ -330,6 +332,16 @@ public sealed interface ModelElement {
             return name().toLowerCase().contains("glow") ? 15 : lightEmission;
         }
 
+        /**
+         * Checks whether the cube is shaded by ambient light.
+         *
+         * @return true if shaded, false otherwise
+         * @since 3.4.0
+         */
+        public boolean shade() {
+            return _shade == null || _shade;
+        }
+
         @Override
         public @NotNull BlueprintElement toBlueprint() {
             return new BlueprintElement.Cube(
@@ -341,6 +353,7 @@ public sealed interface ModelElement {
                 origin(),
                 faces(),
                 Optional.of(lightEmission()).filter(i -> i > 0).orElse(null),
+                shade(),
                 visibility()
             );
         }
