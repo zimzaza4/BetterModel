@@ -666,12 +666,10 @@ public final class RenderedBone implements BoneEventHandler {
                     consumer.accept(uuid);
                 }
             }) || firstTick;
-            if (result || state.isEmpty()) {
-                if (updateAfter.compareAndSet(false, true)) {
-                    lock.accessToWriteLock(() -> before.set(current));
-                }
-                updateCurrent.set(true);
+            if (updateAfter.compareAndSet(false, true)) {
+                lock.accessToWriteLock(() -> before.set(current));
             }
+            updateCurrent.set(true);
             firstTick = false;
             return result;
         }
