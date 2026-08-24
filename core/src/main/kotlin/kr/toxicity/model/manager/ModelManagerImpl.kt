@@ -319,8 +319,7 @@ object ModelManagerImpl : ModelManager, GlobalManager {
                 return RendererGroup(
                     generated?.scale ?: scale(),
                     generated?.let { value ->
-                        CONFIG.item().get().namespace(PlatformNamespace(CONFIG.namespace(), value.itemNamespace))
-
+                        CONFIG.item().get().itemModel(PlatformNamespace(CONFIG.namespace(), value.itemNamespace))
                     },
                     this,
                     children.toBoneMap({ it, _ -> it.parse(root = false) }, root = false),
