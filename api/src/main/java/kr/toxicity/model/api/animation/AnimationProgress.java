@@ -64,7 +64,11 @@ public interface AnimationProgress extends Timed {
      * @since 3.4.0
      */
     static @NotNull AnimationProgress empty(float time, boolean skipInterpolation, boolean globalRotation) {
-        return new EmptyProgress(time, skipInterpolation, globalRotation);
+        // Empty keyframes are shared by every bone without animation data via
+        // toEmpty()/emptyAnimator. Propagating skipInterpolation through them
+        // makes those bones teleport (skip interpolation) while following a
+        // parent, so it is dropped here. Global rotation is still preserved.
+        return new EmptyProgress(time, false, globalRotation);
     }
 
     /**

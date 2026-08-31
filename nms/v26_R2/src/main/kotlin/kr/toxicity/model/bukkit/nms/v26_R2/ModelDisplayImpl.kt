@@ -156,7 +156,7 @@ internal class ModelDisplayImpl(
     override fun glow(glow: Boolean) {
         if (!forceGlow.compareAndSet(!glow, glow)) return
         entityDataLock.accessToLock {
-            display.setGlowingTag(display.isCurrentlyGlowing || glow)
+            display.setGlowingTag(glow)
         }
     }
 
