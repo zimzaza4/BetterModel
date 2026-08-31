@@ -1,0 +1,10 @@
+{
+    "id": "github.com/zimzaza4/bettermodel-plugin",
+    "name": "BetterModel Format",
+    "description": "Adds a BetterModel model format based on the generic model, with light emission and shading support for cubes.",
+    "version": "1.0.0",
+    "author": "zimzaza4",
+    "tags": [
+        "universal"
+    ]
+}
