@@ -221,9 +221,15 @@ internal class CollisionBoxImpl(
         return checkCollide(entity) && delegate.canCollideWithBukkit(entity)
     }
 
-    // Server-side collision for a mounted shulker rejects and rewinds movement, so the box only
-    // collides on the client. Clients hold the vanilla entity, so they still stand on it.
-    override fun canBeCollidedWith(entity: Entity?): Boolean = false
+    // The argument is the entity being moved. A player is client-authoritative and the client
+    // already holds a vanilla shulker that stops them, so claiming a collision here would only
+    // make the server reject and rewind their movement. Any other entity is server-authoritative,
+    // so it has to be told the truth or it walks straight through the box.
+    override fun canBeCollidedWith(entity: Entity?): Boolean {
+        if (entity == null) return true
+        if (entity is Player) return false
+        return checkCollide(entity)
+    }
 
     private fun checkCollide(entity: Entity): Boolean {
         return entity !== delegate
