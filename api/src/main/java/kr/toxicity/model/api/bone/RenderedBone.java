@@ -13,6 +13,7 @@ import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSortedSets;
 import kr.toxicity.model.api.BetterModel;
 import kr.toxicity.model.api.animation.*;
+import kr.toxicity.model.api.config.DebugConfig;
 import kr.toxicity.model.api.data.blueprint.BlueprintAnimation;
 import kr.toxicity.model.api.data.blueprint.BlueprintElement;
 import kr.toxicity.model.api.data.blueprint.ModelBoundingBox;
@@ -85,6 +86,9 @@ public final class RenderedBone implements BoneEventHandler {
     @Getter
     @Nullable
     private HitBox hitBox;
+    @Getter
+    @Nullable
+    private CollisionBox collisionBox;
     @Getter
     @Nullable
     private ModelNametag nametag;
@@ -210,6 +214,52 @@ public final class RenderedBone implements BoneEventHandler {
                 if (hitBox != null) hitBox.removeHitBox();
                 hitBox = BetterModel.nms().createHitBox(entity, this, h, group.getMountController(), l);
                 return hitBox != null;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Creates a solid collision box.
+     * <p>
+     * A collision box is a cube, so its height equals its square footprint. When this model part
+     * is not a cube it falls back to
+     * {@link #createHitBox(BaseEntity, Predicate, HitBoxListener)} so that the part still
+     * provides interaction.
+     * </p>
+     * <p>
+     * A collision box is a {@link HitBox} as well, so it accepts a listener and a mount
+     * controller and can hold passengers.
+     * </p>
+     *
+     * @param entity target entity
+     * @param predicate predicate
+     * @param listener hit box listener
+     * @return success
+     * @since 3.4.1
+     */
+    public boolean createCollisionBox(@NotNull BaseEntity entity, @NotNull Predicate<RenderedBone> predicate, @Nullable HitBoxListener listener) {
+        if (predicate.test(this)) {
+            var previous = collisionBox;
+            synchronized (this) {
+                if (previous != collisionBox) return false;
+                var box = group.getHitBox();
+                if (box == null) box = ModelBoundingBox.MIN;
+                var resolved = CollisionBox.resolve(box, hitBoxScale());
+                if (resolved == null) {
+                    LogUtil.debug(DebugConfig.DebugOption.COLLISION, () -> "Bone '" + name().name()
+                        + "' is not a cube, so it cannot be a collision box. Falling back to a hit-box.");
+                    if (hitBox != null) return false;
+                    return createHitBox(entity, BonePredicate.TRUE, listener);
+                }
+                if (resolved.clamped()) {
+                    LogUtil.debug(DebugConfig.DebugOption.COLLISION, () -> "Bone '" + name().name()
+                        + "' is wider than " + CollisionBox.MAX_WIDTH + " blocks, so its collision box is clamped.");
+                }
+                var l = eventDispatcher.onCreateHitBox(this, (listener != null ? listener : HitBoxListener.EMPTY).toBuilder()).build();
+                if (collisionBox != null) collisionBox.removeHitBox();
+                collisionBox = BetterModel.nms().createCollisionBox(entity, this, box, group.getMountController(), l);
+                return collisionBox != null;
             }
         }
         return false;

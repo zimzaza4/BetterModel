@@ -37,6 +37,10 @@ public record DebugConfig(@NotNull @Unmodifiable Set<DebugOption> options) {
          */
         HITBOX("hitbox"),
         /**
+         * Debug collision-box entity
+         */
+        COLLISION("collision"),
+        /**
          * Debug packing resource pack
          */
         PACK("pack"),

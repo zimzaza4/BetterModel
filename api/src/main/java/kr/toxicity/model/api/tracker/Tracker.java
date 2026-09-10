@@ -672,6 +672,35 @@ public abstract class Tracker implements AutoCloseable {
     }
 
     /**
+     * Creates a solid collision box for bones matching a predicate.
+     *
+     * @param entity the source entity for the collision box
+     * @param predicate the bone predicate
+     * @return true if any collision boxes were created
+     * @since 3.4.1
+     */
+    public boolean createCollisionBox(@NotNull BaseEntity entity, @Nullable HitBoxListener listener, @NotNull BonePredicate predicate) {
+        return tryUpdate((b, p) -> b.createCollisionBox(entity, p, listener), predicate);
+    }
+
+    /**
+     * Retrieves or creates a collision box for a specific bone.
+     *
+     * @param entity the source entity
+     * @param predicate the bone predicate
+     * @return the collision box, or null if not found/created
+     * @since 3.4.1
+     */
+    public @Nullable CollisionBox collisionBox(@NotNull BaseEntity entity, @NotNull Predicate<RenderedBone> predicate) {
+        return pipeline.firstNotNull(bone -> {
+            if (predicate.test(bone)) {
+                if (bone.getCollisionBox() == null) bone.createCollisionBox(entity, BonePredicate.TRUE, null);
+                return bone.getCollisionBox();
+            } else return null;
+        });
+    }
+
+    /**
      * Retrieves or creates a hitbox for a specific bone.
      *
      * @param entity the source entity

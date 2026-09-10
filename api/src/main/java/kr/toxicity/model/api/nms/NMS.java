@@ -193,6 +193,25 @@ public interface NMS {
     @Nullable HitBox createHitBox(@NotNull BaseEntity entity, @NotNull RenderedBone bone, @NotNull ModelBoundingBox boundingBox, @NotNull MountController controller, @NotNull HitBoxListener listener);
 
     /**
+     * Creates a solid collision box for a target entity.
+     * <p>
+     * Implementations that cannot provide a solid entity may return null, in which case
+     * the model part has no collision box.
+     * </p>
+     *
+     * @param entity the target entity
+     * @param bone the bone associated with the collision box
+     * @param boundingBox the bounding box definition
+     * @param controller the mount controller
+     * @param listener the hitbox listener
+     * @return the created collision box, or null if creation failed
+     * @since 3.4.1
+     */
+    default @Nullable CollisionBox createCollisionBox(@NotNull BaseEntity entity, @NotNull RenderedBone bone, @NotNull ModelBoundingBox boundingBox, @NotNull MountController controller, @NotNull HitBoxListener listener) {
+        return null;
+    }
+
+    /**
      * Returns the NMS version of the server.
      *
      * @return the version

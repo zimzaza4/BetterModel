@@ -43,6 +43,21 @@ public enum BoneTags implements BoneTag {
      */
     SUB_SEAT("sp"),
     /**
+     * Creates a solid collision box following this bone.
+     * <p>
+     * Players can stand on its top face and it blocks movement. Its footprint is always square,
+     * and its height is between one and two times its width: a model part that cannot be
+     * expressed that way falls back to a {@link #HITBOX}.
+     * </p>
+     * <p>
+     * A bone may also carry {@link #HITBOX}, in which case it provides both. Note that clients
+     * may aim at either entity, so prefer a separate bone when interaction has to be
+     * unambiguous.
+     * </p>
+     * @since 3.4.1
+     */
+    COLLISION("col"),
+    /**
      * Nametag
      */
     TAG("tag"),

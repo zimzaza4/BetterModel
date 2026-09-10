@@ -158,7 +158,7 @@ class NMSImpl : NMS {
         private inline fun Int.toRegistry(
             ifHitBox: (Entity) -> Unit = {}
         ) = (EntityTrackerRegistry.registry(this) ?: toPlayerEntity()?.let {
-            if (it is HitBox) ifHitBox(it)
+            if (it is HitBox && it !is CollisionBox) ifHitBox(it)
             it.toRegistry()
         })?.takeIf {
             it.isSpawned(player.uniqueId)
@@ -187,6 +187,7 @@ class NMSImpl : NMS {
                 })
                 is ClientboundAddEntityPacket -> {
                     val entity = id.toPlayerEntity() ?: return this
+                    if (entity is CollisionBox) return this
                     if (entity is HitBox) return entity.toFakeAddPacket()
                     val wrap = entity.bukkitEntity.wrap()
                     BetterModel.registry(wrap).ifPresent {
@@ -212,11 +213,13 @@ class NMSImpl : NMS {
                         return it.mountPacket(it.entity().handle() as? Entity ?: return this, array = passengers)
                     }
                 }
-                is ClientboundUpdateAttributesPacket if entityId.toPlayerEntity() is HitBox -> return null
-                is ClientboundSetEntityDataPacket -> id.toRegistry {
-                    return ClientboundSetEntityDataPacket(id, hitBoxData)
-                }?.let { registry ->
-                    return toRegistryDataPacket(uuid, registry)
+                is ClientboundUpdateAttributesPacket if entityId.toPlayerEntity() is HitBox && entityId.toPlayerEntity() !is CollisionBox -> return null
+                is ClientboundSetEntityDataPacket -> {
+                    id.toRegistry {
+                        return ClientboundSetEntityDataPacket(id, hitBoxData)
+                    }?.let { registry ->
+                        return toRegistryDataPacket(uuid, registry)
+                    }
                 }
                 is ClientboundSetEquipmentPacket -> entity.toRegistry {
                     return null
@@ -348,6 +351,17 @@ class NMSImpl : NMS {
         val handle = entity.handle() as? Entity ?: return null
         return HitBoxImpl(
             boundingBox.center(),
+            bone,
+            listener,
+            handle,
+            mountController
+        ).craftEntity
+    }
+
+    override fun createCollisionBox(entity: BaseEntity, bone: RenderedBone, boundingBox: ModelBoundingBox, mountController: MountController, listener: HitBoxListener): CollisionBox? {
+        val handle = entity.handle() as? Entity ?: return null
+        return CollisionBoxImpl(
+            boundingBox,
             bone,
             listener,
             handle,
