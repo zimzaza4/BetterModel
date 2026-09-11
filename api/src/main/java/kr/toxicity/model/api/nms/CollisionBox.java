@@ -34,6 +34,11 @@ import org.jetbrains.annotations.Nullable;
  * than removing it from that player, because removing it would drop the collision on their client
  * while the server still collides. To stop colliding, remove the collision box instead.
  * </p>
+ * <p>
+ * Spectators are never sent the entity, because spectators see through invisibility and would
+ * otherwise perceive it as a faint ghost. They do not collide with it either way, so nothing is
+ * lost. Enabling the collision debug outline sends the entity to them as well.
+ * </p>
  *
  * @since 3.4.1
  */
