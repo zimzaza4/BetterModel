@@ -57,8 +57,15 @@ public class EntityTracker extends Tracker {
         .or(b -> b.getGroup().getMountController().canMount())
         .notSet();
 
+    private static final BonePredicate CREATE_COLLISION_PREDICATE = BonePredicate.name("col")
+        .or(BonePredicate.tag(BoneTags.COLLISION))
+        .and(BonePredicate.tag(BoneTags.SEAT, BoneTags.SUB_SEAT).negate())
+        .and(BonePredicate.from(r -> r.getCollisionBox() == null))
+        .withoutChildren();
+
     private static final BonePredicate CREATE_NAMETAG_PREDICATE = BonePredicate.tag(BoneTags.TAG, BoneTags.MOB_TAG, BoneTags.PLAYER_TAG, BoneTags.TEXT_DISPLAY).notSet();
     private static final BonePredicate HITBOX_REFRESH_PREDICATE = BonePredicate.from(r -> r.getHitBox() != null);
+    private static final BonePredicate COLLISION_REFRESH_PREDICATE = BonePredicate.from(r -> r.getCollisionBox() != null);
     private static final BonePredicate HEAD_PREDICATE = BonePredicate.tag(BoneTags.HEAD).notSet();
     private static final BonePredicate HEAD_WITH_CHILDREN_PREDICATE = BonePredicate.tag(BoneTags.HEAD_WITH_CHILDREN).withChildren();
 
@@ -149,6 +156,7 @@ public class EntityTracker extends Tracker {
         entity.platform().task(() -> {
             if (isClosed()) return;
             createHitBox(null, CREATE_HITBOX_PREDICATE);
+            createCollisionBox(entity, null, CREATE_COLLISION_PREDICATE);
         });
         tick((_, _) -> updateLocation());
         tick((_, _) -> {
@@ -294,7 +302,10 @@ public class EntityTracker extends Tracker {
     @ApiStatus.Internal
     public void refresh() {
         updateLocation();
-        registry.entity().platform().task(() -> createHitBox(null, HITBOX_REFRESH_PREDICATE));
+        registry.entity().platform().task(() -> {
+            createHitBox(null, HITBOX_REFRESH_PREDICATE);
+            createCollisionBox(registry.entity(), null, COLLISION_REFRESH_PREDICATE);
+        });
     }
 
     /**

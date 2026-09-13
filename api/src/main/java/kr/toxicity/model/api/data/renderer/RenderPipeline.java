@@ -13,6 +13,7 @@ import kr.toxicity.model.api.animation.RunningAnimation;
 import kr.toxicity.model.api.bone.*;
 import kr.toxicity.model.api.manager.PlayerManager;
 import kr.toxicity.model.api.nms.AnimationBundler;
+import kr.toxicity.model.api.nms.CollisionBox;
 import kr.toxicity.model.api.nms.HitBox;
 import kr.toxicity.model.api.nms.PacketBundler;
 import kr.toxicity.model.api.nms.PlayerChannelHandler;
@@ -247,6 +248,7 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
      */
     public void despawn() {
         hitboxes().forEach(HitBox::removeHitBox);
+        collisionBoxes().forEach(CollisionBox::removeHitBox);
         var bundler = createBundler();
         remove0(bundler);
         if (bundler.isNotEmpty()) allPlayer().map(PlayerChannelHandler::player).forEach(bundler::send);
@@ -381,6 +383,18 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
     }
 
     /**
+     * Returns a stream of all collision boxes associated with this model.
+     *
+     * @return the stream of collision boxes
+     * @since 3.4.1
+     */
+    public @NotNull Stream<CollisionBox> collisionBoxes() {
+        return stream()
+            .map(RenderedBone::getCollisionBox)
+            .filter(Objects::nonNull);
+    }
+
+    /**
      * Retrieves a bone by its name.
      *
      * @param name the name of the bone
@@ -409,6 +423,10 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
         spawnPacketHandler.accept(bundler);
         var hided = isHide(player);
         forEach(b -> b.spawn(hided, bundler));
+        player.task(() -> collisionBoxes().forEach(cb -> {
+            if (hided) cb.hide(player);
+            else cb.show(player);
+        }));
         consumer.accept(spawnedPlayer);
         return true;
     }
@@ -565,7 +583,10 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
             hidePacketHandler.accept(bundler);
             if (bundler.isNotEmpty()) bundler.send(player);
         }
-        player.task(() -> hitboxes().forEach(hb -> hb.hide(player)));
+        player.task(() -> {
+            hitboxes().forEach(hb -> hb.hide(player));
+            collisionBoxes().forEach(cb -> cb.hide(player));
+        });
         return true;
     }
 
@@ -595,7 +616,10 @@ public final class RenderPipeline implements BoneEventHandler, Iterable<Rendered
             showPacketHandler.accept(bundler);
             if (bundler.isNotEmpty()) bundler.send(player);
         }
-        player.task(() -> hitboxes().forEach(hb -> hb.show(player)));
+        player.task(() -> {
+            hitboxes().forEach(hb -> hb.show(player));
+            collisionBoxes().forEach(cb -> cb.show(player));
+        });
         return true;
     }
 

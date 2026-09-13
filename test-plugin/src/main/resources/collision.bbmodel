@@ -1,0 +1,395 @@
+{
+  "meta": {
+    "format_version": "5.0",
+    "model_format": "free",
+    "box_uv": false
+  },
+  "name": "collision",
+  "model_identifier": "collision",
+  "visible_box": [
+    1,
+    1,
+    0
+  ],
+  "resolution": {
+    "width": 16,
+    "height": 16
+  },
+  "elements": [
+    {
+      "name": "step",
+      "box_uv": false,
+      "render_order": "default",
+      "locked": false,
+      "allow_mirror_modeling": true,
+      "from": [
+        -8,
+        0,
+        -8
+      ],
+      "to": [
+        8,
+        16,
+        8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          0,
+          0,
+          0
+        ]
+      },
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        }
+      },
+      "type": "cube",
+      "uuid": "aaaaaaaa-0000-0000-0000-000000000001"
+    },
+    {
+      "name": "pillar",
+      "box_uv": false,
+      "render_order": "default",
+      "locked": false,
+      "allow_mirror_modeling": true,
+      "from": [
+        8,
+        0,
+        -8
+      ],
+      "to": [
+        24,
+        32,
+        8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          16,
+          0,
+          0
+        ]
+      },
+      "origin": [
+        16,
+        0,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        }
+      },
+      "type": "cube",
+      "uuid": "bbbbbbbb-0000-0000-0000-000000000001"
+    },
+    {
+      "name": "both",
+      "box_uv": false,
+      "render_order": "default",
+      "locked": false,
+      "allow_mirror_modeling": true,
+      "from": [
+        -24,
+        0,
+        -8
+      ],
+      "to": [
+        -8,
+        16,
+        8
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          -16,
+          0,
+          0
+        ]
+      },
+      "origin": [
+        -16,
+        0,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": 0
+        }
+      },
+      "type": "cube",
+      "uuid": "dddddddd-0000-0000-0000-000000000001"
+    }
+  ],
+  "groups": [
+    {
+      "uuid": "aaaaaaaa-0000-0000-0000-000000000002",
+      "name": "col_step",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "color": 0,
+      "children": [],
+      "visibility": true,
+      "export": true
+    },
+    {
+      "uuid": "bbbbbbbb-0000-0000-0000-000000000002",
+      "name": "col_pillar",
+      "origin": [
+        16,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "color": 0,
+      "children": [],
+      "visibility": true,
+      "export": true
+    },
+    {
+      "uuid": "dddddddd-0000-0000-0000-000000000002",
+      "name": "col_b_both",
+      "origin": [
+        -16,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "color": 0,
+      "children": [],
+      "visibility": true,
+      "export": true
+    }
+  ],
+  "outliner": [
+    {
+      "uuid": "aaaaaaaa-0000-0000-0000-000000000002",
+      "isOpen": true,
+      "children": [
+        "aaaaaaaa-0000-0000-0000-000000000001"
+      ]
+    },
+    {
+      "uuid": "bbbbbbbb-0000-0000-0000-000000000002",
+      "isOpen": true,
+      "children": [
+        "bbbbbbbb-0000-0000-0000-000000000001"
+      ]
+    },
+    {
+      "uuid": "dddddddd-0000-0000-0000-000000000002",
+      "isOpen": true,
+      "children": [
+        "dddddddd-0000-0000-0000-000000000001"
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "name": "collision.png",
+      "path": "",
+      "folder": "",
+      "namespace": "",
+      "id": "0",
+      "group": "",
+      "width": 16,
+      "height": 16,
+      "uv_width": 16,
+      "uv_height": 16,
+      "particle": true,
+      "use_as_default": false,
+      "layers_enabled": false,
+      "render_mode": "default",
+      "render_sides": "auto",
+      "frame_time": 0,
+      "frame_order": "loop",
+      "frame_interpolate": false,
+      "visible": true,
+      "mode": "bitmap",
+      "saved": true,
+      "uuid": "cccccccc-0000-0000-0000-000000000001",
+      "source": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGklEQVR42mP4z/D/PyWYYdSAUQNGDRguBgAAx4/9H5ua3FcAAAAASUVORK5CYII="
+    }
+  ],
+  "animations": [],
+  "animation_variable_placeholders": []
+}

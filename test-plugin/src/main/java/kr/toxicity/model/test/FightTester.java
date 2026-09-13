@@ -79,6 +79,10 @@ public final class FightTester implements ModelTester, Listener {
                 "knight",
                 () -> Objects.requireNonNull(test.getResource("knight.bbmodel"))
             ));
+            else if (event.type() == ModelRenderer.Type.GENERAL) event.addAsset(ModelAsset.of(
+                "collision",
+                () -> Objects.requireNonNull(test.getResource("collision.bbmodel"))
+            ));
         });
     }
 

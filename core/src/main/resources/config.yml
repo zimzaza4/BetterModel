@@ -8,6 +8,8 @@
 debug:
   # Toggles debug messages for hitbox creation and interaction.
   hitbox: false
+  # Toggles debug messages for collision box creation, and draws their outlines.
+  collision: false
   # Toggles detailed stack traces for exceptions handled by the plugin.
   exception: false
   # Toggles debug messages related to resource pack generation.
