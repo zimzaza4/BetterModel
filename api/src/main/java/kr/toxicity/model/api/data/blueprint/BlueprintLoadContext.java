@@ -35,6 +35,7 @@ public final class BlueprintLoadContext {
 
     private final String name;
     private final ModelResolution resolution;
+    private final boolean perTextureUvSize;
     private final TextureRef[] textureRefs;
     private final boolean canBeRendered;
 
@@ -48,10 +49,12 @@ public final class BlueprintLoadContext {
     BlueprintLoadContext(
         @NotNull String name,
         @NotNull ModelResolution resolution,
+        boolean perTextureUvSize,
         @NotNull List<BlueprintTexture> textures
     ) {
         this.name = name;
         this.resolution = resolution;
+        this.perTextureUvSize = perTextureUvSize;
         this.textureRefs = new TextureRef[textures.size()];
         var i = 0;
         var canBeRendered = false;
@@ -101,6 +104,17 @@ public final class BlueprintLoadContext {
      */
     public @NotNull BlueprintTexture texture(int index) {
         return Objects.requireNonNull(textureRefs[index]).texture();
+    }
+
+    /**
+     * Gets the resolution that the UV coordinates of the given texture are stored in.
+     *
+     * @param index the texture index
+     * @return the UV resolution of the texture
+     * @since 3.5.0
+     */
+    public @NotNull ModelResolution uvResolution(int index) {
+        return texture(index).resolution(resolution, perTextureUvSize);
     }
 
     @NotNull

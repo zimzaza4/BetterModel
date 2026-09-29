@@ -103,6 +103,7 @@ public record ModelData(
             new ModelBlueprint(
                 context.name,
                 resolution(),
+                meta().perTextureUvSize(),
                 mapToList(textures(), texture -> texture.toBlueprint(context)),
                 group,
                 associate(

@@ -16,6 +16,7 @@ import org.semver4j.Semver;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents metadata about the model file, specifically the format version.
@@ -24,18 +25,45 @@ import java.util.Objects;
  * </p>
  *
  * @param formatVersion the detected format version of the model file
+ * @param modelFormat the Blockbench format id of the model file, an empty string if it is not defined
  * @since 1.15.2
  */
 public record ModelMeta(
-    @NotNull FormatVersion formatVersion
+    @NotNull FormatVersion formatVersion,
+    @NotNull String modelFormat
 ) {
+    /** Blockbench formats whose faces store UV coordinates in each texture's own UV size. */
+    private static final Set<String> PER_TEXTURE_UV_SIZE_FORMATS = Set.of(
+        "free",
+        "optifine_entity",
+        "optifine_part"
+    );
+
     /**
      * A JSON deserializer for parsing {@link ModelMeta} from the "meta" object in a .bbmodel file.
      * @since 1.15.2
      */
-    public static final JsonDeserializer<ModelMeta> PARSER = (json, _, _) -> new ModelMeta(
-        FormatVersion.find(Objects.requireNonNull(Semver.coerce(json.getAsJsonObject().getAsJsonPrimitive("format_version").getAsString())).getMajor())
-    );
+    public static final JsonDeserializer<ModelMeta> PARSER = (json, _, _) -> {
+        var object = json.getAsJsonObject();
+        return new ModelMeta(
+            FormatVersion.find(Objects.requireNonNull(Semver.coerce(object.getAsJsonPrimitive("format_version").getAsString())).getMajor()),
+            object.has("model_format") ? object.getAsJsonPrimitive("model_format").getAsString() : ""
+        );
+    };
+
+    /**
+     * Checks whether this model stores face UV coordinates in each texture's own UV size.
+     * <p>
+     * Every other format stores them in the resolution of the model, where the UV size of a texture
+     * only describes its pixel scale and the frame size of an animated texture.
+     * </p>
+     *
+     * @return true if the model uses a per-texture UV size, false if it uses the resolution of the model
+     * @since 3.5.0
+     */
+    public boolean perTextureUvSize() {
+        return PER_TEXTURE_UV_SIZE_FORMATS.contains(modelFormat);
+    }
 
     /**
      * Enumerates supported BlockBench format versions and their specific coordinate conversions.

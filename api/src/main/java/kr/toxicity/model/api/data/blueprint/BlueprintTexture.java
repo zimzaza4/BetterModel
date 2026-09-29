@@ -106,14 +106,18 @@ public record BlueprintTexture(
     }
 
     /**
-     * Returns the effective resolution for this texture's UV mapping.
+     * Returns the resolution that the UV coordinates of the model are stored in.
+     * <p>
+     * Only a format with a per-texture UV size stores them in the UV size of a texture.
+     * </p>
      *
      * @param resolution the parent model's resolution
-     * @return the UV resolution, or the parent resolution if not specified
+     * @param perTextureUvSize whether the model stores its coordinates in each texture's own UV size
+     * @return the resolution of the UV coordinates
      * @since 1.15.2
      */
-    public @NotNull ModelResolution resolution(@NotNull ModelResolution resolution) {
-        if (!hasUVSize()) return resolution;
-        return resolution.width() == width && resolution.height() == height ? resolution : new ModelResolution(uvWidth, uvHeight);
+    public @NotNull ModelResolution resolution(@NotNull ModelResolution resolution, boolean perTextureUvSize) {
+        if (!perTextureUvSize || !hasUVSize()) return resolution;
+        return new ModelResolution(uvWidth, uvHeight);
     }
 }

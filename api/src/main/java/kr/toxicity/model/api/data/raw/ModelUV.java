@@ -63,7 +63,7 @@ public record ModelUV(
      */
     public @Nullable JsonObject toJson(@NotNull BlueprintLoadContext context) {
         if (!hasTexture()) return null;
-        var div = uv.div(context.texture(textureIndex()).resolution(context.resolution()));
+        var div = uv.div(context.uvResolution(textureIndex()));
         if (!div.isValid()) return null;
         var object = new JsonObject();
         object.add("uv", div.toJson());

@@ -23,6 +23,7 @@ import java.util.Map;
  *
  * @param name the name of the model
  * @param resolution the texture resolution of the model
+ * @param perTextureUvSize whether the faces use each texture's own UV size instead of the model resolution
  * @param textures the list of textures used by the model
  * @param elements the hierarchical list of model elements (bones)
  * @param animations a map of animations available for this model
@@ -32,6 +33,7 @@ import java.util.Map;
 public record ModelBlueprint(
     @NotNull String name,
     @NotNull ModelResolution resolution,
+    boolean perTextureUvSize,
     @NotNull List<BlueprintTexture> textures,
     @NotNull List<BlueprintElement> elements,
     @NotNull Map<String, BlueprintAnimation> animations
@@ -47,6 +49,7 @@ public record ModelBlueprint(
         return new BlueprintLoadContext(
             name(),
             resolution(),
+            perTextureUvSize(),
             textures()
         );
     }
